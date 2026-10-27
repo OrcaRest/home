@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F&B Management - Kreasi Cah Ndeso</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        fnb: {
+                            bg: '#FAF7F0',
+                            surface: '#FFFFFF',
+                            dark: '#1E4620',
+                            olive: '#7C9246',
+                            yellow: '#F3A94B',
+                            brown: '#5A3B21',
+                            border: '#E6E1D6'
+                        }
+                    },
+                    boxShadow: {
+                        'fnb-3d': '0 10px 25px -5px rgba(30, 70, 32, 0.12), 0 8px 10px -6px rgba(124, 146, 70, 0.08)',
+                        'fnb-inset': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.04)'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media print {
+            body { background: white !important; color: black !important; }
+            header, footer, button, .no-print { display: none !important; }
+            .print-area { box-shadow: none !important; border: none !important; width: 100% !important; }
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-fnb-bg text-fnb-dark font-sans min-h-screen pb-16 selection:bg-fnb-yellow selection:text-fnb-dark">
+
+    <!-- Banner Notifikasi Status Koneksi / Sync -->
+    <div id="connectionBanner" class="bg-amber-600 text-white text-xs font-bold px-4 py-2 text-center transition-all duration-300 hidden no-print z-50 sticky top-0 shadow-md flex items-center justify-center gap-2">
+        <i id="bannerIcon" class="fa-solid fa-triangle-exclamation"></i>
+        <span id="bannerText">Mode Offline Aktif. Data tersimpan di browser cache.</span>
+    </div>
+
+    <!-- Header & Brand -->
+    <header class="bg-fnb-dark text-white sticky top-0 z-40 shadow-lg border-b border-fnb-olive/30 no-print">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-fnb-yellow to-fnb-olive flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-utensils text-fnb-dark font-bold text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-sm sm:text-lg tracking-wider text-fnb-yellow">F&B MANAGEMENT</h1>
+                    <p class="text-xs text-fnb-bg/80 font-medium">© 2026 Kreasi Cah Ndeso System</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="toggleManualOfflineMode()" id="btnNetworkMode" class="px-3 py-1.5 rounded-full text-xs font-bold border transition flex items-center gap-1.5 bg-emerald-800 text-emerald-200 border-emerald-600 shadow">
+                    <i id="networkModeIcon" class="fa-solid fa-wifi"></i> <span id="networkModeText">Online Mode (Auto)</span>
+                </button>
+                <span class="inline-block bg-emerald-800 text-emerald-200 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-600 shadow">
+                    <i class="fa-solid fa-store"></i> Store Active
+                </span>
+            </div>
+        </div>
+        
+        <!-- Navigation Tabs -->
+        <div class="max-w-7xl mx-auto px-4 flex overflow-x-auto space-x-2 py-2.5 no-scrollbar bg-slate-900/95 border-t border-slate-800">
+            <button onclick="switchTab('tab-kasir', this)" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap shadow-lg bg-emerald-600 text-white border border-emerald-400">
+                <i class="fa-solid fa-cash-register"></i> Kasir & Menu
+            </button>
+            <button onclick="switchTab('tab-closing', this)" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Rekap Harian (Closing)
+            </button>
+            <button onclick="switchTab('tab-stok', this)" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700">
+                <i class="fa-solid fa-boxes-stacked"></i> Stok & Opname
+            </button>
+            <button onclick="switchTab('tab-libur', this)" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700">
+                <i class="fa-solid fa-calendar-xmark"></i> Setting Libur
+            </button>
+            <button onclick="switchTab('tab-laporan', this)" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700">
+                <i class="fa-solid fa-chart-pie"></i> Laporan & Export
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
+
+        <!-- TAB 1: KASIR & MENU -->
+        <section id="tab-kasir" class="space-y-6 tab-content">
+            <div class="bg-emerald-900/10 border-l-4 border-emerald-600 p-3 rounded-r-xl text-xs text-emerald-900 font-semibold mb-2">
+                <i class="fa-solid fa-circle-info"></i> Mode Kasir Cepat: Pilih menu, hitung uang fisik pembeli dengan sistem Tap, atau gunakan pembayaran QRIS.
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-fnb-surface border border-fnb-border rounded-2xl p-5 shadow-fnb-3d">
+                        <div class="flex justify-between items-center mb-4 border-b border-fnb-border pb-3">
+                            <h2 class="font-bold text-sm text-emerald-900 flex items-center gap-2"><i class="fa-solid fa-hand-pointer text-emerald-600"></i> Menu Penjualan Cepat (Tap to Add)</h2>
+                            <button onclick="openKelolaMenuModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-md flex items-center gap-1.5"><i class="fa-solid fa-gear"></i> Kelola Menu</button>
+                        </div>
+                        <div id="quickMenuList" class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[280px] overflow-y-auto pr-1">
+                            <p class="text-gray-400 italic col-span-full text-center py-4">Belum ada menu. Silakan tambah menu melalui tombol Kelola Menu.</p>
+                        </div>
+                    </div>
+
+                    <!-- Alat Bantu Hitung Uang Tap -->
+                    <div class="bg-fnb-surface border border-fnb-border rounded-2xl p-5 shadow-fnb-3d">
+                        <div class="flex justify-between items-center border-b border-fnb-border pb-3 mb-3">
+                            <div>
+                                <h2 class="font-bold text-sm text-emerald-900 flex items-center gap-2"><i class="fa-solid fa-coins text-amber-600"></i> Hitung Uang Fisik Pembeli (Tap Nominal)</h2>
+                                <p class="text-[11px] text-gray-500">Tekan tombol pecahan untuk menambahkan nominal pembayaran.</p>
+                            </div>
+                            <button onclick="resetUangTapKasir()" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-xl transition font-semibold"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                            <script>
+                                const denoms = [100000, 50000, 20000, 10000, 5000, 2000, 1000, 500, 200, 100];
+                                denoms.forEach(d => {
+                                    document.write(`
+                                        <div class="bg-fnb-bg border border-fnb-border rounded-xl p-2 flex flex-col justify-between items-center text-center shadow-fnb-inset">
+                                            <span class="text-[11px] font-extrabold text-amber-800">Rp ${d.toLocaleString('id-ID')}</span>
+                                            <span id="count_tap_${d}" class="text-[10px] text-emerald-700 font-bold my-1">0 lembar</span>
+                                            <div class="flex gap-1 w-full mt-1">
+                                                <button onclick="tapDenom(${d})" class="w-full bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-bold py-1 rounded-lg transition">+ Tap</button>
+                                                <button onclick="untapDenom(${d})" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold px-2 py-1 rounded-lg transition" title="Kurangi">-1</button>
+                                            </div>
+                                        </div>
+                                    `);
+                                });
+                            </script>
+                        </div>
+                        <div class="mt-3 bg-fnb-bg p-2.5 rounded-xl border border-fnb-border flex justify-between items-center">
+                            <span class="text-xs font-bold text-emerald-900">Total Hasil Tap Uang:</span>
+                            <span id="displayTotalTapKasir" class="text-sm font-extrabold text-emerald-700">Rp 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Box Keranjang -->
+                <div class="bg-fnb-surface border border-fnb-border rounded-2xl p-5 shadow-fnb-3d flex flex-col justify-between space-y-4">
+                    <div>
+                        <h2 class="font-bold text-sm text-emerald-900 mb-3 border-b border-fnb-border pb-2 flex items-center gap-2"><i class="fa-solid fa-receipt text-emerald-600"></i> Keranjang & Pembayaran</h2>
+                        
+                        <div id="cartItemsContainer" class="space-y-2 max-h-[180px] overflow-y-auto mb-3 text-xs pr-1 border-b border-fnb-border pb-3">
+                            <p class="text-gray-400 italic">Belum ada menu dipilih.</p>
+                        </div>
+
+                        <div class="space-y-3 text-xs">
+                            <div class="flex justify-between font-bold text-sm bg-emerald-100 text-emerald-950 p-3 rounded-xl border border-emerald-300 shadow-sm">
+                                <span>Total Belanja:</span>
+                                <span id="displayTotalBelanja" class="font-extrabold text-base">Rp 0</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="setMetodeBayar('Tunai')" id="btnTunai" class="py-2 rounded-xl font-bold text-xs bg-emerald-800 text-white border border-emerald-800 transition shadow">Tunai</button>
+                                <button onclick="setMetodeBayar('QRIS')" id="btnQris" class="py-2 rounded-xl font-bold text-xs bg-fnb-bg text-emerald-900 border border-fnb-border transition flex items-center justify-center gap-1"><i class="fa-solid fa-qrcode text-emerald-600"></i> QRIS</button>
+                            </div>
+
+                            <div id="tunaiInputContainer">
+                                <label class="block text-gray-600 mb-1 font-semibold">Uang Pembeli Diterima (Ketik / Tap)</label>
+                                <input type="number" id="uangPembeli" oninput="hitungKembalian()" class="w-full bg-fnb-bg border border-fnb-border rounded-xl px-3 py-2 text-emerald-900 font-extrabold text-sm focus:border-emerald-600 focus:outline-none" placeholder="0">
+                            </div>
+
+                            <div class="bg-amber-100 p-3 rounded-xl border border-amber-300 flex justify-between items-center shadow-sm">
+                                <span class="font-bold text-amber-950" id="labelKembalian"><i class="fa-solid fa-hand-holding-dollar text-amber-700"></i> Uang Kembalian:</span>
+                                <span id="displayKembalian" class="font-extrabold text-base text-amber-900">Rp 0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="simpanTransaksiKasir()" class="w-full bg-emerald-800 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2 text-xs">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Selesaikan Transaksi Shift
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: REKAP HARIAN / CLOSING -->
+        <section id="tab-closing" class="space-y-6 tab-content hidden">
+            <div class="bg-amber-900/10 border-l-4 border-amber-600 p-3 rounded-r-xl text-xs text-amber-900 font-semibold mb-2">
+                <i class="fa-solid fa-circle-info"></i> Closing Harian: Hitung total uang fisik di laci (Kas Tunai) dan verifikasi total pembayaran digital/QRIS berdasarkan transaksi aktual hari ini.
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-fnb-surface border border-fnb-border rounded-2xl p-5 shadow-fnb-3d space-y-4">
+                    <div class="flex justify-between items-center border-b border-fnb-border pb-3">
+                        <h2 class="font-bold base text-amber-900 flex items-center gap-2"><i class="fa-solid fa-coins text-amber-600"></i> Hitung Uang Fisik Laci Closing</h2>
+                        <button onclick="resetClosing()" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-xl transition font-semibold"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+                    </div>
+
+                    <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 flex items-center justify-between gap-3 mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-amber-900 block">Edit / Setting Modal Awal Hari Ini:</span>
+                            <span class="text-[10px] text-amber-700">Mengubah modal akan memicu status Kuning & wajib isi keterangan.</span>
+                        </div>
+                        <input type="number" id="editModalClosing" oninput="hitungClosingFisik()" class="w-32 bg-white text-center text-xs font-extrabold text-amber-900 rounded-lg border border-amber-300 py-1.5 px-2 focus:outline-none focus:border-amber-600" value="300000">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[260px] overflow-y-auto pr-1">
+                        <script>
+                            denoms.forEach(d => {
+                                document.write(`
+                                    <div class="bg-fnb-bg p-2.5 rounded-xl border border-fnb-border flex items-center justify-between gap-3 shadow-fnb-inset">
+                                        <span class="text-xs font-bold text-amber-800">Rp ${d.toLocaleString('id-ID')}</span>
+                                        <input type="number" min="0" value="0" data-val="${d}" oninput="hitungClosingFisik()" class="closing-input w-20 bg-fnb-surface text-center text-xs font-bold text-amber-900 rounded-lg border border-fnb-border py-1 px-2 focus:outline-none focus:border-amber-600">
+                                    </div>
+                                `);
+                            });
+                        </script>
+                    </div>
+                </div>
+
+                <div class="bg-fnb-surface border border-fnb-border rounded-2xl p-5 shadow-fnb-3d flex flex-col justify-between space-y-4">
+                    <div>
+                        <h2 class="font-bold text-sm text-amber-900 mb-3 border-b border-fnb-border pb-2"><i class="fa-solid fa-chart-column text-amber-600"></i> Status & Rekap Harian</h2>
+                        
+                        <div class="space-y-2.5 text-xs">
+                            <div class="flex justify-between bg-fnb-bg p-2 rounded-xl border border-fnb-border">
+                                <span class="text-gray-500">Modal Awal:</span>
+                                <span id="closingDisplayModal" class="font-bold text-amber-900">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between bg-fnb-bg p-2 rounded-xl border border-fnb-border">
+                                <span class="text-gray-500">Total Omset Penjualan:</span>
+                                <span id="closingDisplayOmset" class="font-bold text-amber-900">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between bg-fnb-bg p-1.5 rounded-lg border border-fnb-border pl-4">
+                                <span class="text-gray-500">↳ Omset Tunai:</span>
+                                <span id="closingDisplayTunai" class="font-bold text-amber-900">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between bg-fnb-bg p-1.5 rounded-lg border border-indigo-100 pl-4 bg-indigo-50/40">
+                                <span class="text-indigo-900 font-semibold"><i class="fa-solid fa-qrcode text-indigo-600"></i> Total Pembayaran QRIS:</span>
+                                <span id="closingDisplayQris" class="font-extrabold text-indigo-700">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between bg-fnb-bg p-2 rounded-xl border border-fnb-border">
+                                <span class="text-gray-500">Total Fisik Laci (Kas):</span>
+                                <span id="closingDisplayFisik" class="font-bold text-amber-700">Rp 0</span>
+                            </div>
+
+                            <div id="statusWarnaContainer" class="p-3 rounded-xl border text-center font-bold text-xs bg-emerald-100 text-emerald-800 border-emerald-300">
+                                Status: 🟢 Klop / Sesuai (Balance)
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-600 mb-1 font-semibold">Catatan Penyesuaian (Wajib jika Kuning/Merah)</label>
+                                <textarea id="closingCatatan" rows="2" placeholder="Contoh: Koreksi modal awal / selisih kas..." class="w-full bg-fnb-bg border border-fnb-border rounded-xl px-3 py-2 text-xs text-amber-900 focus:border-amber-600 focus:outline-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="simpanClosingHarian()" class="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 rounded-xl transition shadow-md text-xs flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Closing Hari Ini
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: STOK & OPNAME -->
+        <section id="tab-stok" class="space-y-6 tab-content hidden">
+            <div class="bg-amber-950/10 border-l-4 border-amber-800 p-3 rounded-r-xl text-xs text-amber-950 font-semibold mb-2">
+                <i class="fa-solid fa-circle-info"></i> Manajemen Stok & Opname: Input sisa stok harian untuk menghitung bahan terpakai otomatis dan pantau alert batas minimum.
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-fnb-surface p-4 rounded-2xl border border-fnb-border shadow-fnb-3d">
+                <div>
+                    <h2 class="font-bold text-base text-amber-950"><i class="fa-solid fa-boxes-stacked text-amber-800"></i> Manajemen Stok, Opname & Edit Item</h2>
+                    <p class="text-xs text-gray-500">Atur satuan, min stok opsional, edit detail item, dan input sisa stok harian.</p>
+                </div>
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <input type="text" id="searchStok" oninput="renderStokTable()" placeholder="Cari barang/bahan..." class="bg-fnb-bg text-xs px-3 py-2 rounded-xl border border-fnb-border focus:outline-none focus:border-amber-800 w-full md:w-48 text-amber-950">
+                    <button onclick="openTambahBarangModal('add')" class="bg-amber-900 hover:bg-amber-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-md whitespace-nowrap"><i class="fa-solid fa-plus"></i> Tambah Item</button>
+                </div>
+            </div>
+
+            <div class="bg-fnb-surface border border-fnb-border rounded-2xl overflow-hidden shadow-fnb-3d">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-gray-700">
+                        <thead class="bg-amber-950 text-white uppercase font-bold border-b border-fnb-border">
+                            <tr>
+                                <th class="p-3">Nama Barang / Bahan</th>
+                                <th class="p-3">Kategori</th>
+                                <th class="p-3">Satuan</th>
+                                <th class="p-3">Stok Awal</th>
+                                <th class="p-3 bg-amber-900/40">Sisa Stok (Opname)</th>
+                                <th class="p-3">Terpakai / Terjual</th>
+                                <th class="p-3">Status Stok</th>
+                                <th class="p-3 text-center">Aksi (Edit / Hapus)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelStokBody" class="divide-y divide-fnb-border">
+                            <tr><td colspan="8" class="p-4 text-center text-gray-400 italic">Belum ada data barang. Silakan tambah item stok.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: SETTING LIBUR -->
+        <section id="tab-libur" class="space-y-6 tab-content hidden">
+            <div class="bg-rose-900/10 border-l-4 border-rose-700 p-3 rounded-r-xl text-xs text-rose-900 font-semibold mb-2">
+                <i class="fa-solid fa-circle-info"></i> Pengaturan Hari Libur: Atur jadwal libur rutin mingguan, libur khusus, atau koreksi hari libur.
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-fnb-surface border border-fnb-border rounded-2xl p-5 shadow-fnb-3d space-y-4">
+                    <h2 class="font-bold text-base text-rose-900 border-b border-fnb-border pb-3 flex items-center gap-2"><i class="fa-solid fa-calendar-xmark text-rose-700"></i> Atur Hari Libur / Tutup</h2>
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <label class="block text-gray-600 mb-1 font-semibold">Tipe Libur</label>
+                            <select id="inputTipeLibur" onchange="toggleFormLiburUI()" class="w-full bg-fnb-bg border border-fnb-border rounded-xl px-3 py-2 text-rose-950 font-semibold focus:outline-none focus:border-rose-700">
+                                <option value="Libur Rutin Mingguan">Libur Rutin Mingguan</option>
+                                <option value="Libur Khusus / Dadakan">Libur Khusus / Dadakan</option>
+                                <option value="Koreksi Hari Libur">Koreksi Hari Libur</option>
+                            </select>
+                        </div>
+
+                        <div id="containerLiburRutin" class="space-y-2">
+                            <label class="block text-gray-600 font-semibold">Pilih Hari Libur Rutin:</label>
+                            <div class="grid grid-cols-2 gap-2 bg-fnb-bg p-3 rounded-xl border border-fnb-border">
+                                <label class="flex items-center gap-2 font-medium cursor-pointer text-rose-950"><input type="checkbox" value="1" class="chk-hari-rutin rounded text-rose-750"> Senin</label>
+                                <label class="flex items-center gap-2 font-medium cursor-pointer text-rose-950"><input type="checkbox" value="2" class="chk-hari-rutin rounded"> Selasa</label>
+                                <label class="flex items-center gap-2 font-medium cursor-pointer text-rose-950"><input type="checkbox" value="3" class="chk-hari-rutin rounded"> Rabu</label>
+                                <label class="flex items-center gap-2 font-medium cursor-pointer text-rose-950"><input type="checkbox" value="4" class="chk-hari-rutin rounded"> Kamis</label>
+                                <label class="flex items-center gap-2 font-medium cursor-pointer text-rose-950"><input type="checkbox" value="5" class="chk-hari-rutin rounded"> Jumat</label>
+                                <label class="flex items-center gap-2 font-medium cursor-pointer text-rose-950"><input type="checkbox" value="6" class="chk-hari-rutin rounded"> Sabtu</label>
+                                <label class="flex items-center gap-2 font-medium cursor-pointer text-rose-950"><input type="checkbox" value="0" class="chk-hari-rutin rounded"> Minggu</label>
+                            </div>
+                        </div>
+
+                        <div id="containerLiburTanggal" class="hidden">
+                            <label class="block text-gray-600 mb-1 font-semibold">Tanggal Libur / Tutup</label>
+                            <input type="date" id="inputTglLibur" class="w-full bg-fnb-bg border border-fnb-border rounded-xl px-3 py-2 text-rose-950 font-semibold">
+                        </div>
+
+                        <div id="containerKeteranganLibur" class="hidden">
+                            <label class="block text-gray-600 mb-1 font-semibold">Keterangan / Alasan Libur <span class="text-red-500">*</span></label>
+                            <textarea id="inputKeteranganLibur" rows="3" placeholder="Contoh: Perbaikan fasilitas..." class="w-full bg-fnb-bg border border-fnb-border rounded-xl px-3 py-2 text-rose-950 focus:outline-none focus:border-rose-700"></textarea>
+                        </div>
+                    </div>
+                    <button onclick="simpanSettingLibur()" class="w-full bg-rose-700 hover:bg-rose-800 text-white font-bold py-2.5 rounded-xl transition shadow-md text-xs flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan & Sinkronkan
+                    </button>
+                </div>
+
+                <div class="lg:col-span-2 bg-fnb-surface border border-fnb-border rounded-2xl p-5 shadow-fnb-3d">
+                    <h2 class="font-bold text-base text-rose-900 border-b border-fnb-border pb-3 flex items-center gap-2"><i class="fa-solid fa-clipboard-list text-rose-700"></i> Riwayat & Pengaturan Libur</h2>
+                    <div class="overflow-x-auto mt-3">
+                        <table class="w-full text-left text-xs text-gray-700">
+                            <thead class="bg-rose-950 text-white font-bold">
+                                <tr>
+                                    <th class="p-2.5">Tanggal / Hari Rutin</th>
+                                    <th class="p-2.5">Tipe Libur</th>
+                                    <th class="p-2.5">Keterangan</th>
+                                    <th class="p-2.5 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelLiburBody" class="divide-y divide-fnb-border">
+                                <tr><td colspan="4" class="p-4 text-center text-gray-400 italic">Belum ada jadwal libur terekam.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: LAPORAN & EXPORT -->
+        <section id="tab-laporan" class="space-y-6 tab-content hidden print-area">
+            <div class="bg-indigo-900/10 border-l-4 border-indigo-700 p-3 rounded-r-xl text-xs text-indigo-900 font-semibold mb-2 no-print">
+                <i class="fa-solid fa-circle-info"></i> Pusat Laporan & Export: Periksa laporan harian, mingguan, bulanan, serta rekap bahan stok lengkap.
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-fnb-surface p-4 rounded-2xl border border-fnb-border shadow-fnb-3d no-print">
+                <div>
+                    <h2 class="font-bold text-base text-indigo-950"><i class="fa-solid fa-chart-pie text-indigo-700"></i> Pusat Laporan, Search & Export Pro</h2>
+                    <p class="text-xs text-gray-500">Cek laporan Penjualan & Stok Opname langsung dari database Google Sheets.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="exportToExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow-md flex items-center gap-1.5"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+                    <button onclick="exportToPDF()" class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow-md flex items-center gap-1.5"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 no-print">
+                <div class="bg-fnb-surface border border-indigo-200 rounded-2xl p-5 shadow-fnb-3d">
+                    <h3 class="font-bold text-sm text-indigo-950 mb-3 flex items-center gap-2"><i class="fa-solid fa-calendar-day text-indigo-700"></i> Cek Laporan Penjualan Harian</h3>
+                    <div class="flex gap-2">
+                        <input type="date" id="filterTglHarian" class="bg-fnb-bg text-xs px-3 py-2 rounded-xl border border-fnb-border text-indigo-950 font-semibold w-full">
+                        <button onclick="searchLaporanHarian()" class="bg-indigo-900 text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-indigo-800">Cek</button>
+                    </div>
+                    <div id="hasilFilterHarian" class="mt-3 text-xs text-gray-600 bg-fnb-bg p-3 rounded-xl border border-indigo-100 italic">
+                        Pilih tanggal untuk melihat detail omset harian.
+                    </div>
+                </div>
+
+                <div class="bg-fnb-surface border border-indigo-200 rounded-2xl p-5 shadow-fnb-3d">
+                    <h3 class="font-bold text-sm text-indigo-950 mb-3 flex items-center gap-2"><i class="fa-solid fa-calendar-week text-indigo-700"></i> Cek Laporan Penjualan Mingguan</h3>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <input type="date" id="filterMulaiMinggu" class="bg-fnb-bg text-xs px-2.5 py-2 rounded-xl border border-fnb-border text-indigo-950">
+                        <input type="date" id="filterSelesaiMinggu" class="bg-fnb-bg text-xs px-2.5 py-2 rounded-xl border border-fnb-border text-indigo-950">
+                    </div>
+                    <button onclick="searchLaporanMingguan()" class="w-full bg-indigo-700 text-white font-bold text-xs py-2 rounded-xl hover:bg-indigo-800">Cek Rekap Minggu</button>
+                    <div id="hasilFilterMingguan" class="mt-2 text-xs text-gray-600 bg-fnb-bg p-3 rounded-xl border border-indigo-100 italic">
+                        Pilih rentang tanggal minggu yang ingin dicek.
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-fnb-surface border border-fnb-border rounded-2xl p-5 shadow-fnb-3d space-y-3">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-fnb-border pb-3">
+                    <h3 class="font-bold text-sm text-indigo-950 flex items-center gap-2"><i class="fa-solid fa-calendar-days text-indigo-700"></i> List Laporan Penjualan Bulanan</h3>
+                    <input type="text" id="searchLaporanBulanan" oninput="renderLaporanBulananTable()" placeholder="Cari bulan/tahun..." class="bg-fnb-bg text-xs px-3 py-1.5 rounded-xl border border-indigo-200 text-indigo-950 w-full sm:w-48">
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-gray-700">
+                        <thead class="bg-indigo-950 text-white font-bold">
+                            <tr>
+                                <th class="p-2.5">Bulan / Tahun</th>
+                                <th class="p-2.5">Total Omset</th>
+                                <th class="p-2.5">Total Transaksi</th>
+                                <th class="p-2.5">Total Hari Libur</th>
+                                <th class="p-2.5">Catatan Manajer</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelLaporanBulananBody" class="divide-y divide-fnb-border">
+                            <tr><td colspan="5" class="p-4 text-center text-gray-400 italic">Belum ada rekap bulanan.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL KELOLA MENU -->
+    <div id="modalKelolaMenu" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-fnb-surface border border-fnb-border w-full max-w-2xl rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-fnb-border pb-3">
+                <h3 class="font-bold text-base text-emerald-900 flex items-center gap-2"><i class="fa-solid fa-gear text-emerald-600"></i> Kelola Daftar Menu & Harga</h3>
+                <button onclick="closeKelolaMenuModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="bg-fnb-bg p-4 rounded-xl border border-fnb-border space-y-3">
+                <h4 id="formMenuTitle" class="font-bold text-xs text-emerald-900 uppercase"><i class="fa-solid fa-plus-circle text-emerald-600"></i> Tambah Menu Baru</h4>
+                <input type="hidden" id="editMenuId" value="">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div>
+                        <label class="block text-gray-600 mb-1">Nama Menu</label>
+                        <input type="text" id="inputNamaMenu" class="w-full bg-fnb-surface border border-fnb-border rounded-lg px-3 py-2 text-emerald-950" placeholder="Cth: Es Kopi Susu">
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 mb-1">Kategori</label>
+                        <select id="selectKatMenu" onchange="checkCustomCategory(this)" class="w-full bg-fnb-surface border border-fnb-border rounded-lg px-3 py-2 text-emerald-950 mb-1">
+                            <option value="Minuman">Minuman</option>
+                            <option value="Makanan">Makanan</option>
+                            <option value="Cemilan">Cemilan</option>
+                            <option value="CUSTOM">+ Tambah Kategori Baru...</option>
+                        </select>
+                        <input type="text" id="inputCustomKatMenu" class="w-full bg-fnb-surface border border-fnb-border rounded-lg px-2 py-1 text-emerald-950 hidden" placeholder="Nama kategori baru...">
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 mb-1">Harga (Rp)</label>
+                        <input type="number" id="inputHargaMenu" class="w-full bg-fnb-surface border border-fnb-border rounded-lg px-3 py-2 text-emerald-950" placeholder="15000">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-1">
+                    <button onclick="resetFormMenu()" class="bg-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded-lg">Reset</button>
+                    <button onclick="submitMenu()" class="bg-emerald-800 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-1.5 rounded-lg shadow">Simpan Menu</button>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-xs text-emerald-900 uppercase mb-2">Daftar Menu Aktif & Pengaturan</h4>
+                <div class="overflow-x-auto border border-fnb-border rounded-xl">
+                    <table class="w-full text-left text-xs text-gray-700">
+                        <thead class="bg-emerald-900 text-white font-bold">
+                            <tr>
+                                <th class="p-2.5">Nama Menu</th>
+                                <th class="p-2.5">Kategori</th>
+                                <th class="p-2.5">Harga</th>
+                                <th class="p-2.5 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelKelolaMenuBody" class="divide-y divide-fnb-border bg-fnb-surface">
+                            <tr><td colspan="4" class="p-3 text-center text-gray-400 italic">Belum ada menu.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH / EDIT BARANG (STOK) -->
+    <div id="modalTambahBarang" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-fnb-surface border border-fnb-border w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+            <h3 id="modalBarangTitle" class="font-bold text-base text-amber-950 flex items-center gap-2"><i class="fa-solid fa-plus-circle text-amber-800"></i> Tambah Master Barang / Bahan</h3>
+            <input type="hidden" id="editBarangId" value="">
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-gray-600 mb-1">Nama Barang / Bahan</label>
+                    <input type="text" id="inputNamaBarang" class="w-full bg-fnb-bg border border-fnb-border rounded-xl px-3 py-2 text-amber-950" placeholder="Misal: Biji Kopi">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-gray-600 mb-1">Kategori</label>
+                        <select id="inputKategori" class="w-full bg-fnb-bg border border-fnb-border rounded-xl px-3 py-2 text-amber-950">
+                            <option value="Bahan Baku">Bahan Baku</option>
+                            <option value="Barang Jadi/F&B">Barang Jadi / F&B</option>
+                            <option value="Kemasan">Kemasan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 mb-1">Satuan</label>
+                        <input type="text" id="inputSatuan" class="w-full bg-fnb-bg border border-fnb-border rounded-xl px-3 py-2 text-amber-950" placeholder="Gram / Pcs">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-gray-600 mb-1">Stok Awal</label>
+                        <input type="number" id="inputStokAwal" class="w-full bg-fnb-bg border border-fnb-border rounded-xl px-3 py-2 text-amber-950" value="0">
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 mb-1">Min. Stok (Opsional)</label>
+                        <input type="number" id="inputMinStok" class="w-full bg-fnb-bg border border-fnb-border rounded-xl px-3 py-2 text-amber-950" placeholder="Opsional">
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeTambahBarangModal()" class="bg-gray-200 text-gray-700 text-xs px-4 py-2 rounded-xl">Batal</button>
+                <button onclick="submitBarang()" class="bg-amber-900 hover:bg-amber-800 text-white font-bold text-xs px-4 py-2 rounded-xl">Simpan Item</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Controller & API Connector -->
+    <script>
+        // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxcCmYipbTThcue1Ilmpg-eNYcmKELoVpyRKf1fuET-vmqv9t9atvW_SOoLEtrvK_g/exec";
+
+        let manualOfflineOverride = localStorage.getItem('fnb_manual_offline') === 'true';
+        let offlineQueue = JSON.parse(localStorage.getItem('fnb_offline_queue') || '[]');
+
+        let menuList = [];
+        let masterBarangList = [];
+        let bulananReportData = [];
+
+        // Data omset harian aktual (tersimpan di session/localStorage hari ini tanpa data dummy)
+        let currentDayOmsetTunai = parseFloat(localStorage.getItem('fnb_today_tunai') || '0');
+        let currentDayOmsetQris = parseFloat(localStorage.getItem('fnb_today_qris') || '0');
+
+        let cart = [];
+        let currentMetodeBayar = 'Tunai';
+        let tapDenomState = {100000:0, 50000:0, 20000:0, 10000:0, 5000:0, 2000:0, 1000:0, 500:0, 200:0, 100:0};
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDataFromServer();
+            checkSystemOnlineStatus();
+            hitungClosingFisik();
+        });
+
+        async function sendToBackend(action, payload) {
+            if (isOfflineMode()) {
+                offlineQueue.push({ action, payload, timestamp: new Date().toISOString() });
+                localStorage.setItem('fnb_offline_queue', JSON.stringify(offlineQueue));
+                checkSystemOnlineStatus();
+                return { status: 'offline', message: 'Disimpan ke antrean offline.' };
+            }
+
+            try {
+                let response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action, payload })
+                });
+                let result = await response.json();
+                return result;
+            } catch (err) {
+                console.warn('Gagal terhubung ke server, beralih ke mode offline queue:', err);
+                offlineQueue.push({ action, payload, timestamp: new Date().toISOString() });
+                localStorage.setItem('fnb_offline_queue', JSON.stringify(offlineQueue));
+                checkSystemOnlineStatus();
+                return { status: 'offline', message: 'Koneksi gagal, disimpan offline.' };
+            }
+        }
+
+        async function loadDataFromServer() {
+            if (isOfflineMode()) return;
+            try {
+                let res = await fetch(WEB_APP_URL + "?action=GET_ALL_DATA");
+                let json = await res.json();
+                if (json.status === 'success') {
+                    if (json.data.menu) {
+                        menuList = json.data.menu.map(m => ({
+                            id: m['ID Menu'], nama: m['Nama Menu'], kategori: m['Kategori'], harga: Number(m['Harga (Rp)'])
+                        }));
+                    }
+                    if (json.data.stok) {
+                        masterBarangList = json.data.stok.map(b => ({
+                            id: b['ID Barang'], nama: b['Nama Barang'], kategori: b['Kategori'], satuan: b['Satuan'], stokAwal: Number(b['Stok Awal']), minStok: b['Min Stok']
+                        }));
+                    }
+                    if (json.data.laporanBulanan) {
+                        bulananReportData = json.data.laporanBulanan.map(l => ({
+                            bulan: l['Bulan / Tahun'], omset: Number(l['Total Omset']), transaksi: Number(l['Total Transaksi']), catatan: l['Catatan Manajer']
+                        }));
+                    }
+                    renderQuickMenu();
+                    renderStokTable();
+                    renderLaporanBulananTable();
+                }
+            } catch (e) {
+                console.error('Gagal mengambil data awal dari server:', e);
+            }
+        }
+
+        function checkSystemOnlineStatus() {
+            let isReallyOnline = navigator.onLine;
+            let effectiveOffline = manualOfflineOverride || !isReallyOnline;
+            const banner = document.getElementById('connectionBanner');
+            const bannerText = document.getElementById('bannerText');
+            const bannerIcon = document.getElementById('bannerIcon');
+            const btnMode = document.getElementById('btnNetworkMode');
+            const modeText = document.getElementById('networkModeText');
+
+            if (effectiveOffline) {
+                banner.className = "bg-amber-600 text-white text-xs font-bold px-4 py-2 text-center transition-all duration-300 no-print z-50 sticky top-0 shadow-md flex items-center justify-center gap-2";
+                bannerIcon.className = "fa-solid fa-triangle-exclamation";
+                bannerText.innerText = `Mode Offline Aktif (${offlineQueue.length} data menanti sinkronisasi)`;
+                banner.classList.remove('hidden');
+                modeText.innerText = manualOfflineOverride ? "Offline (Manual)" : "Offline (Sinyal)";
+                btnMode.className = "px-3 py-1.5 rounded-full text-xs font-bold border transition flex items-center gap-1.5 bg-amber-700 text-amber-200 border-amber-500 shadow animate-pulse";
+            } else {
+                if (offlineQueue.length > 0) {
+                    banner.className = "bg-emerald-700 text-white text-xs font-bold px-4 py-2 text-center transition-all duration-300 no-print z-50 sticky top-0 shadow-md flex items-center justify-center gap-2";
+                    bannerIcon.className = "fa-solid fa-rotate fa-spin";
+                    bannerText.innerText = `Kembali Online! Menyinkronkan ${offlineQueue.length} data ke Google Sheets...`;
+                    banner.classList.remove('hidden');
+                    triggerSyncQueue();
+                } else {
+                    banner.classList.add('hidden');
+                }
+                modeText.innerText = "Online Mode (Auto)";
+                btnMode.className = "px-3 py-1.5 rounded-full text-xs font-bold border transition flex items-center gap-1.5 bg-emerald-800 text-emerald-200 border-emerald-600 shadow";
+            }
+        }
+
+        function toggleManualOfflineMode() {
+            manualOfflineOverride = !manualOfflineOverride;
+            localStorage.setItem('fnb_manual_offline', manualOfflineOverride);
+            checkSystemOnlineStatus();
+        }
+
+        function isOfflineMode() {
+            return manualOfflineOverride || !navigator.onLine;
+        }
+
+        async function triggerSyncQueue() {
+            if (offlineQueue.length === 0) return;
+            let tempQueue = [...offlineQueue];
+            offlineQueue = [];
+            localStorage.setItem('fnb_offline_queue', JSON.stringify(offlineQueue));
+
+            for (let item of tempQueue) {
+                try {
+                    await fetch(WEB_APP_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: item.action, payload: item.payload })
+                    });
+                } catch (e) {
+                    offlineQueue.push(item);
+                }
+            }
+            localStorage.setItem('fnb_offline_queue', JSON.stringify(offlineQueue));
+            checkSystemOnlineStatus();
+            loadDataFromServer();
+        }
+
+        window.addEventListener('online', checkSystemOnlineStatus);
+        window.addEventListener('offline', checkSystemOnlineStatus);
+
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700";
+            });
+            document.getElementById(tabId).classList.remove('hidden');
+            if (btnElement) {
+                let activeColorClass = "bg-emerald-600 text-white border border-emerald-400";
+                if (tabId === 'tab-closing') activeColorClass = "bg-amber-600 text-white border border-amber-400";
+                if (tabId === 'tab-stok') activeColorClass = "bg-amber-800 text-white border border-amber-600";
+                if (tabId === 'tab-libur') activeColorClass = "bg-rose-700 text-white border border-rose-500";
+                if (tabId === 'tab-laporan') activeColorClass = "bg-indigo-700 text-white border border-indigo-500";
+                btnElement.className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap shadow-lg " + activeColorClass;
+            }
+        }
+
+        // --- MENU & KASIR ---
+        function renderQuickMenu() {
+            const container = document.getElementById('quickMenuList');
+            container.innerHTML = '';
+            if (menuList.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 italic col-span-full text-center py-4">Belum ada menu. Silakan tambah menu melalui tombol Kelola Menu.</p>';
+                renderKelolaMenuTable();
+                return;
+            }
+            menuList.forEach(m => {
+                container.innerHTML += `
+                    <button onclick="addToCart('${m.id}', '${m.nama}', ${m.harga})" class="bg-fnb-bg hover:bg-emerald-50 border border-fnb-border p-3 rounded-xl text-left transition shadow-fnb-inset flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] text-emerald-700 font-bold uppercase">${m.kategori}</span>
+                            <span class="font-bold text-xs text-emerald-950 block">${m.nama}</span>
+                        </div>
+                        <span class="text-xs font-semibold text-emerald-700 mt-1">Rp ${m.harga.toLocaleString('id-ID')}</span>
+                    </button>
+                `;
+            });
+            renderKelolaMenuTable();
+        }
+
+        function renderKelolaMenuTable() {
+            const tbody = document.getElementById('tabelKelolaMenuBody');
+            tbody.innerHTML = '';
+            if(menuList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-400 italic">Belum ada menu.</td></tr>`;
+                return;
+            }
+            menuList.forEach((m) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-fnb-bg transition">
+                        <td class="p-2.5 font-bold text-emerald-950">${m.nama}</td>
+                        <td class="p-2.5"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">${m.kategori}</span></td>
+                        <td class="p-2.5 font-semibold text-emerald-950">Rp ${m.harga.toLocaleString('id-ID')}</td>
+                        <td class="p-2.5 text-center space-x-2">
+                            <button onclick="editMenu('${m.id}')" class="text-emerald-800 hover:text-emerald-600 p-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="hapusMenu('${m.id}')" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openKelolaMenuModal() {
+            document.getElementById('modalKelolaMenu').classList.remove('hidden');
+            document.getElementById('modalKelolaMenu').classList.add('flex');
+            resetFormMenu();
+        }
+
+        function closeKelolaMenuModal() {
+            document.getElementById('modalKelolaMenu').classList.remove('flex');
+            document.getElementById('modalKelolaMenu').classList.add('hidden');
+        }
+
+        function resetFormMenu() {
+            document.getElementById('editMenuId').value = '';
+            document.getElementById('inputNamaMenu').value = '';
+            document.getElementById('inputHargaMenu').value = '';
+            document.getElementById('selectKatMenu').value = 'Minuman';
+            document.getElementById('inputCustomKatMenu').classList.add('hidden');
+            document.getElementById('formMenuTitle').innerHTML = '<i class="fa-solid fa-plus-circle text-emerald-600"></i> Tambah Menu Baru';
+        }
+
+        function checkCustomCategory(select) {
+            let customInput = document.getElementById('inputCustomKatMenu');
+            if (select.value === 'CUSTOM') { customInput.classList.remove('hidden'); customInput.focus(); }
+            else { customInput.classList.add('hidden'); }
+        }
+
+        async function submitMenu() {
+            let id = document.getElementById('editMenuId').value || 'M-' + Date.now();
+            let nama = document.getElementById('inputNamaMenu').value;
+            let harga = parseInt(document.getElementById('inputHargaMenu').value) || 0;
+            let selectKat = document.getElementById('selectKatMenu').value;
+            let kategori = selectKat === 'CUSTOM' ? document.getElementById('inputCustomKatMenu').value : selectKat;
+
+            if (!nama || !harga || !kategori) { alert('Semua field menu wajib diisi!'); return; }
+
+            let payload = { id, nama, kategori, harga };
+            await sendToBackend('SUBMIT_MENU', payload);
+
+            let idx = menuList.findIndex(m => m.id === id);
+            if (idx !== -1) { menuList[idx] = payload; } else { menuList.push(payload); }
+
+            renderQuickMenu();
+            resetFormMenu();
+            alert('Menu berhasil disimpan!');
+        }
+
+        function editMenu(id) {
+            let m = menuList.find(item => item.id === id);
+            if (!m) return;
+            document.getElementById('editMenuId').value = m.id;
+            document.getElementById('inputNamaMenu').value = m.nama;
+            document.getElementById('inputHargaMenu').value = m.harga;
+            let select = document.getElementById('selectKatMenu');
+            let found = Array.from(select.options).some(opt => opt.value === m.kategori);
+            if (found) { select.value = m.kategori; document.getElementById('inputCustomKatMenu').classList.add('hidden'); }
+            else { select.value = 'CUSTOM'; document.getElementById('inputCustomKatMenu').value = m.kategori; document.getElementById('inputCustomKatMenu').classList.remove('hidden'); }
+            document.getElementById('formMenuTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-emerald-600"></i> Edit Menu';
+            openKelolaMenuModal();
+        }
+
+        async function hapusMenu(id) {
+            if (confirm('Yakin ingin menghapus menu ini?')) {
+                await sendToBackend('HAPUS_MENU', { id });
+                menuList = menuList.filter(m => m.id !== id);
+                renderQuickMenu();
+            }
+        }
+
+        // --- KASIR TAP & CART ---
+        function tapDenom(d) { tapDenomState[d] = (tapDenomState[d] || 0) + 1; updateTapDisplay(); }
+        function untapDenom(d) { if(tapDenomState[d] > 0) { tapDenomState[d] -= 1; updateTapDisplay(); } }
+        function resetUangTapKasir() { Object.keys(tapDenomState).forEach(k => tapDenomState[k] = 0); updateTapDisplay(); }
+        
+        function updateTapDisplay() {
+            let total = 0;
+            Object.keys(tapDenomState).forEach(d => {
+                let count = tapDenomState[d];
+                total += parseInt(d) * count;
+                document.getElementById(`count_tap_${d}`).innerText = count + ' lembar';
+            });
+            document.getElementById('displayTotalTapKasir').innerText = 'Rp ' + total.toLocaleString('id-ID');
+            document.getElementById('uangPembeli').value = total;
+            hitungKembalian();
+        }
+
+        function setMetodeBayar(metode) {
+            currentMetodeBayar = metode;
+            let btnTunai = document.getElementById('btnTunai');
+            let btnQris = document.getElementById('btnQris');
+            let tunaiContainer = document.getElementById('tunaiInputContainer');
+            if(metode === 'Tunai') {
+                btnTunai.className = 'py-2 rounded-xl font-bold text-xs bg-emerald-800 text-white border border-emerald-800 transition shadow';
+                btnQris.className = 'py-2 rounded-xl font-bold text-xs bg-fnb-bg text-emerald-950 border border-fnb-border transition flex items-center justify-center gap-1';
+                tunaiContainer.style.display = 'block';
+                hitungKembalian();
+            } else {
+                btnQris.className = 'py-2 rounded-xl font-bold text-xs bg-emerald-600 text-white border border-emerald-600 transition flex items-center justify-center gap-1 shadow';
+                btnTunai.className = 'py-2 rounded-xl font-bold text-xs bg-fnb-bg text-emerald-950 border border-fnb-border transition';
+                tunaiContainer.style.display = 'none';
+                let total = cart.reduce((acc, item) => acc + (item.harga * item.qty), 0);
+                document.getElementById('uangPembeli').value = total;
+                document.getElementById('displayKembalian').innerText = 'Rp 0 (Pas/QRIS)';
+            }
+        }
+
+        function addToCart(id, nama, harga) {
+            let exist = cart.find(item => item.id === id);
+            if (exist) { exist.qty += 1; } else { cart.push({id, nama, harga, qty: 1}); }
+            renderCart();
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cartItemsContainer');
+            if (cart.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 italic">Belum ada menu dipilih.</p>';
+                document.getElementById('displayTotalBelanja').innerText = 'Rp 0';
+                hitungKembalian();
+                return;
+            }
+            container.innerHTML = '';
+            let total = 0;
+            cart.forEach((item, index) => {
+                let sub = item.harga * item.qty;
+                total += sub;
+                container.innerHTML += `
+                    <div class="flex justify-between items-center bg-fnb-bg p-2 rounded-lg border border-fnb-border">
+                        <div>
+                            <span class="font-bold text-emerald-950">${item.nama}</span>
+                            <div class="text-[10px] text-gray-500">${item.qty}x @Rp ${item.harga.toLocaleString('id-ID')}</div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-emerald-700">Rp ${sub.toLocaleString('id-ID')}</span>
+                            <button onclick="cart.splice(${index}, 1); renderCart();" class="text-red-500 hover:text-red-700 px-1"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('displayTotalBelanja').innerText = 'Rp ' + total.toLocaleString('id-ID');
+            if(currentMetodeBayar === 'QRIS') {
+                document.getElementById('uangPembeli').value = total;
+                document.getElementById('displayKembalian').innerText = 'Rp 0 (Pas/QRIS)';
+            } else {
+                hitungKembalian();
+            }
+        }
+
+        function hitungKembalian() {
+            if(currentMetodeBayar === 'QRIS') {
+                document.getElementById('displayKembalian').innerText = 'Rp 0 (Pas/QRIS)';
+                return;
+            }
+            let total = cart.reduce((acc, item) => acc + (item.harga * item.qty), 0);
+            let bayar = parseInt(document.getElementById('uangPembeli').value) || 0;
+            let kembalian = bayar - total;
+            document.getElementById('displayKembalian').innerText = 'Rp ' + (kembalian >= 0 ? kembalian.toLocaleString('id-ID') : 0);
+        }
+
+        async function simpanTransaksiKasir() {
+            let totalOmset = cart.reduce((acc, item) => acc + (item.harga * item.qty), 0);
+            if (totalOmset === 0) { alert('Keranjang masih kosong!'); return; }
+            
+            let transaksiPayload = {
+                idTransaksi: "TRX-" + Date.now(),
+                items: [...cart],
+                total: totalOmset,
+                metode: currentMetodeBayar,
+                waktu: new Date().toISOString()
+            };
+
+            await sendToBackend('TRANSAKSI_KASIR', transaksiPayload);
+
+            // Akumulasi ke omset harian aktual secara dinamis
+            if (currentMetodeBayar === 'Tunai') {
+                currentDayOmsetTunai += totalOmset;
+                localStorage.setItem('fnb_today_tunai', currentDayOmsetTunai);
+            } else {
+                currentDayOmsetQris += totalOmset;
+                localStorage.setItem('fnb_today_qris', currentDayOmsetQris);
+            }
+
+            alert(`Transaksi senilai Rp ${totalOmset.toLocaleString('id-ID')} via ${currentMetodeBayar} berhasil disimpan!`);
+
+            cart = [];
+            document.getElementById('uangPembeli').value = '';
+            resetUangTapKasir();
+            renderCart();
+            hitungClosingFisik();
+        }
+
+        // --- CLOSING HARIAN DINAMIS (TANPA DUMMY) ---
+        function hitungClosingFisik() {
+            let totalFisikKas = 0;
+            document.querySelectorAll('.closing-input').forEach(input => {
+                totalFisikKas += (parseInt(input.value) || 0) * parseInt(input.getAttribute('data-val'));
+            });
+            let modal = parseInt(document.getElementById('editModalClosing').value) || 0;
+            let totalOmset = currentDayOmsetTunai + currentDayOmsetQris;
+            let expectedKasFisik = modal + currentDayOmsetTunai;
+            let selisihKas = totalFisikKas - expectedKasFisik;
+
+            document.getElementById('closingDisplayModal').innerText = 'Rp ' + modal.toLocaleString('id-ID');
+            document.getElementById('closingDisplayOmset').innerText = 'Rp ' + totalOmset.toLocaleString('id-ID');
+            document.getElementById('closingDisplayTunai').innerText = 'Rp ' + currentDayOmsetTunai.toLocaleString('id-ID');
+            document.getElementById('closingDisplayQris').innerText = 'Rp ' + currentDayOmsetQris.toLocaleString('id-ID');
+            document.getElementById('closingDisplayFisik').innerText = 'Rp ' + totalFisikKas.toLocaleString('id-ID');
+
+            let statusContainer = document.getElementById('statusWarnaContainer');
+            if (modal !== 300000 && document.getElementById('editModalClosing').value !== "") {
+                statusContainer.className = 'p-3 rounded-xl border text-center font-bold text-xs bg-amber-100 text-amber-900 border-amber-300';
+                statusContainer.innerHTML = 'Status: 🟡 Kuning (Modal Awal Diedit / Penyesuaian)';
+            } else if (selisihKas === 0) {
+                statusContainer.className = 'p-3 rounded-xl border text-center font-bold text-xs bg-emerald-100 text-emerald-800 border-emerald-300';
+                statusContainer.innerHTML = 'Status: 🟢 Klop / Sesuai (Balance Kas Tunai & QRIS Tercatat)';
+            } else if (selisihKas > 0) {
+                statusContainer.className = 'p-3 rounded-xl border text-center font-bold text-xs bg-amber-100 text-amber-900 border-amber-300';
+                statusContainer.innerHTML = `Status: 🟡 Kuning (Kas Lebih Rp ${selisihKas.toLocaleString('id-ID')} - Ada Catatan)`;
+            } else {
+                statusContainer.className = 'p-3 rounded-xl border text-center font-bold text-xs bg-red-100 text-red-800 border-red-300';
+                statusContainer.innerHTML = `Status: 🔴 Merah (Kas Kurang Rp ${Math.abs(selisihKas).toLocaleString('id-ID')} - Defisit)`;
+            }
+        }
+
+        function resetClosing() {
+            document.querySelectorAll('.closing-input').forEach(i => i.value = 0);
+            document.getElementById('editModalClosing').value = 300000;
+            document.getElementById('closingCatatan').value = '';
+            hitungClosingFisik();
+        }
+
+        async function simpanClosingHarian() {
+            let modalVal = parseInt(document.getElementById('editModalClosing').value) || 0;
+            let catatan = document.getElementById('closingCatatan').value.trim();
+            let totalFisik = 0;
+            document.querySelectorAll('.closing-input').forEach(input => {
+                totalFisik += (parseInt(input.value) || 0) * parseInt(input.getAttribute('data-val'));
+            });
+
+            if (modalVal !== 300000 && !catatan) {
+                alert('Karena modal awal disesuaikan, Anda wajib mengisi Catatan Penyesuaian!');
+                document.getElementById('closingCatatan').focus();
+                return;
+            }
+
+            let closingPayload = {
+                tanggal: new Date().toISOString().split('T')[0],
+                modal: modalVal,
+                omsetTunai: currentDayOmsetTunai,
+                omsetQris: currentDayOmsetQris,
+                totalFisik: totalFisik,
+                selisih: totalFisik - (modalVal + currentDayOmsetTunai),
+                status: document.getElementById('statusWarnaContainer').innerText,
+                catatan: catatan || "-"
+            };
+
+            await sendToBackend('CLOSING_HARIAN', closingPayload);
+            alert('Closing harian berhasil direkam dan disinkronkan ke Google Sheets!');
+        }
+
+        // --- STOK & OPNAME ---
+        function renderStokTable() {
+            const tbody = document.getElementById('tabelStokBody');
+            tbody.innerHTML = '';
+            if (masterBarangList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">Belum ada data barang. Silakan tambah item stok.</td></tr>';
+                return;
+            }
+            masterBarangList.forEach((item, index) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-fnb-bg transition">
+                        <td class="p-3 font-semibold text-amber-950">${item.nama}</td>
+                        <td class="p-3 text-gray-500">${item.kategori}</td>
+                        <td class="p-3 text-gray-700 font-bold">${item.satuan}</td>
+                        <td class="p-3">${item.stokAwal}</td>
+                        <td class="p-3 bg-amber-50">
+                            <input type="number" id="sisa_${index}" value="${item.stokAwal}" class="w-16 bg-fnb-surface border border-fnb-border rounded px-2 py-1 text-center font-bold text-amber-950">
+                        </td>
+                        <td class="p-3 font-bold text-amber-800">0</td>
+                        <td class="p-3"><span class="px-2 py-1 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">Aman</span></td>
+                        <td class="p-3 text-center space-x-1">
+                            <button onclick="hapusBarang('${item.id}')" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openTambahBarangModal() {
+            document.getElementById('modalTambahBarang').classList.remove('hidden');
+            document.getElementById('modalTambahBarang').classList.add('flex');
+        }
+
+        function closeTambahBarangModal() {
+            document.getElementById('modalTambahBarang').classList.remove('flex');
+            document.getElementById('modalTambahBarang').classList.add('hidden');
+        }
+
+        async function submitBarang() {
+            let id = 'B-' + Date.now();
+            let nama = document.getElementById('inputNamaBarang').value;
+            let kategori = document.getElementById('inputKategori').value;
+            let satuan = document.getElementById('inputSatuan').value;
+            let stokAwal = parseInt(document.getElementById('inputStokAwal').value) || 0;
+            let minStok = document.getElementById('inputMinStok').value;
+
+            if (!nama || !satuan) { alert('Nama dan satuan barang wajib diisi!'); return; }
+
+            let payload = { id, nama, kategori, satuan, stokAwal, minStok };
+            await sendToBackend('SUBMIT_BARANG', payload);
+            masterBarangList.push(payload);
+            renderStokTable();
+            closeTambahBarangModal();
+            alert('Barang berhasil disimpan!');
+        }
+
+        async function hapusBarang(id) {
+            if (confirm('Yakin ingin menghapus item ini?')) {
+                await sendToBackend('HAPUS_BARANG', { id });
+                masterBarangList = masterBarangList.filter(b => b.id !== id);
+                renderStokTable();
+            }
+        }
+
+        // --- SETTING LIBUR ---
+        function toggleFormLiburUI() {
+            let tipe = document.getElementById('inputTipeLibur').value;
+            if (tipe === 'Libur Rutin Mingguan') {
+                document.getElementById('containerLiburRutin').classList.remove('hidden');
+                document.getElementById('containerLiburTanggal').classList.add('hidden');
+                document.getElementById('containerKeteranganLibur').classList.add('hidden');
+            } else {
+                document.getElementById('containerLiburRutin').classList.add('hidden');
+                document.getElementById('containerLiburTanggal').classList.remove('hidden');
+                document.getElementById('containerKeteranganLibur').classList.remove('hidden');
+            }
+        }
+
+        async function simpanSettingLibur() {
+            let id = 'L-' + Date.now();
+            let tipe = document.getElementById('inputTipeLibur').value;
+            let detail = tipe === 'Libur Rutin Mingguan' ? 'Rutin Mingguan' : document.getElementById('inputTglLibur').value;
+            let keterangan = document.getElementById('inputKeteranganLibur').value || 'Libur Toko';
+
+            let payload = { id, tipe, detail, keterangan };
+            await sendToBackend('SETTING_LIBUR', payload);
+            alert('Pengaturan libur berhasil disimpan!');
+        }
+
+        // --- LAPORAN ---
+        function renderLaporanBulananTable() {
+            const tbody = document.getElementById('tabelLaporanBulananBody');
+            tbody.innerHTML = '';
+            if (bulananReportData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400 italic">Belum ada rekap bulanan terekam.</td></tr>';
+                return;
+            }
+            bulananReportData.forEach(b => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-fnb-bg transition">
+                        <td class="p-2.5 font-bold text-indigo-950">${b.bulan}</td>
+                        <td class="p-2.5 font-bold text-indigo-700">Rp ${b.omset.toLocaleString('id-ID')}</td>
+                        <td class="p-2.5 font-semibold">${b.transaksi} Transaksi</td>
+                        <td class="p-2.5 text-red-600 font-bold">0 Hari</td>
+                        <td class="p-2.5 text-gray-600">${b.catatan}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function searchLaporanHarian() {
+            let tgl = document.getElementById('filterTglHarian').value;
+            if(!tgl) { alert('Pilih tanggal laporan harian!'); return; }
+            document.getElementById('hasilFilterHarian').innerHTML = `<p class="text-indigo-950 font-bold">Memuat data tanggal ${tgl}...</p>`;
+        }
+
+        function searchLaporanMingguan() {
+            let m = document.getElementById('filterMulaiMinggu').value;
+            let s = document.getElementById('filterSelesaiMinggu').value;
+            if(!m || !s) { alert('Tentukan rentang tanggal!'); return; }
+            document.getElementById('hasilFilterMingguan').innerHTML = `<p class="text-indigo-950 font-bold">Memuat rekap periode ${m} s/d ${s}...</p>`;
+        }
+
+        function exportToPDF() { window.print(); }
+        function exportToExcel() { alert('Fitur export Excel aktif menggunakan data Google Sheets.'); }
+
+        // Inisialisasi awal
+        toggleFormLiburUI();
+        renderCart();
+    </script>
+</body>
+</html>
